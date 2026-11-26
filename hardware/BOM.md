@@ -29,7 +29,7 @@ the common 36 V.
 |---|---|---|---|---|
 | P1 | Inline fuse holder, waterproof | Mini blade (ATM) holder with cap, 18–20 AWG leads | 1 | Sealed type for monsoon spray |
 | P2 | Fuse | Eaton Bussmann ATM-1 (MINI blade, 1 A, 32 V) | 3 | 2 spares. Littelfuse's MINI 297 series starts at 2 A (0297002.WXNV, also acceptable for this load); the earlier "0297001" does not exist |
-| P3 | Reverse-polarity diode | SS34 Schottky, 40 V 3 A | 1 | ~0.4 V drop is irrelevant at 12 V. 40 V V<sub>RRM</sub> may be exceeded by large negative transients (ISO 7637-2 pulse 1); consider a 60 V part (SS36) *verify* |
+| P3 | Reverse-polarity diode | onsemi SS36 Schottky, 60 V 3 A, SMC (DO-214AB) | 1 | V<sub>F</sub> ≤ 0.75 V at 3 A, well under that at the ~150 mA load: irrelevant at 12 V. 60 V V<sub>RRM</sub> chosen over the 40 V SS34 for headroom against negative transients (ISO 7637-2 pulse 1). Second-source SS36s differ in V<sub>F</sub> and T<sub>J</sub> max: check the datasheet of the one bought |
 | P4 | Load-dump TVS | Vishay SM8S24AHM3/I (unidirectional, AEC-Q101) | 1 | V<sub>WM</sub> 24 V, V<sub>BR</sub> ≥ 26.7 V, V<sub>C</sub> ≤ 38.9 V at 170 A, 6.6 kW (10/1000 µs). A 24 V jump start stays below V<sub>BR</sub> (2.7 V margin). Current datasheet gives the case as DO-218AC, older ones DO-218AB: check the footprint. Not the bidirectional SM8S24CA; P3 already blocks reverse battery |
 | P5 | Bulk capacitor | 47 µF 63 V electrolytic, 105 °C | 1 | Rides through dips during electric start |
 | P6 | Buck converter | Pololu D36V6F5 (#3792): 5 V ±4 %, 600 mA, 5.2–50 V in, I<sub>q</sub> < 0.1 mA | 1 | 50 V max leaves ~11 V over the TVS clamp; 13 × 10 × 3 mm. No reverse-voltage protection (P3 covers it). Pololu asks for ≥ 33 µF electrolytic at VIN: P5 satisfies it |
@@ -90,12 +90,13 @@ the common 36 V.
 1. Decide D4 (mount): changes M1 and M8.
 2. Order E1 + E2 first and run `docs/bench-test.md` and the sunlight test; that
    settles D3 (display size) before the enclosure is designed around it.
-3. Resolve the remaining *verify* notes (P3 voltage rating, E4 pinout) and measure the
+3. Resolve the remaining *verify* note (E4 pinout) and measure the
    handlebar.
 
 ## Sources (checked 2026-11-26)
 
 - P2: Eaton Bussmann ATM-1, https://www.digikey.co.uk/en/products/detail/eaton-bussmann-electrical-division/ATM-1/24768397; Littelfuse 297 series, https://littelfuse.com/products/fuses/automotive-passenger-car/blade-fuses/297.aspx
+- P3: onsemi SS36, https://www.onsemi.com/pdf/datasheet/ssa36-d.pdf, https://www.digikey.com/en/products/detail/onsemi/SS36/1053019
 - P4: Vishay datasheet 98647 (rev 16-Jan-2024), https://www.vishay.com/docs/98647/sm8s10ahm3thrusm8s43ahm3.pdf
 - P6: https://www.pololu.com/product/3792
 - E4: Diodes Inc DS11005, https://www.diodes.com/assets/Datasheets/ds11005.pdf
