@@ -1,0 +1,86 @@
+# BLE protocol — v1 (draft)
+
+Status: draft. UUIDs below are fixed for v1 and must not change within this version.
+
+## GATT
+
+| Item | UUID | Properties | Direction |
+|---|---|---|---|
+| Service | `5211c17e-1a40-45ab-9bb1-023f349e963f` | — | — |
+| Nav characteristic | `993d9a6c-8219-4ced-a1f0-3c0984fd6723` | write without response | phone → pod |
+| Ack characteristic | `15f299a0-a841-4116-9dbb-30b57dafe4ef` | notify | pod → phone (reserved) |
+
+Roles: pod is the GATT server and advertises the service UUID under the name
+`HunterTripper`. Phone is the client: it connects (Android `autoConnect = true` so it
+reconnects whenever the ignition comes on), requests MTU 247 (ATT payload ≤ 244 B)
+and writes one packet per write.
+
+On every new connection the phone sends STATUS, then the current NAV_TEXT and all
+NAV_ICON chunks if navigating, because the pod lost all state when it powered off.
+
+## Framing
+
+All multi-byte integers are little-endian.
+
+```
+[ver:u8][type:u8][len:u16][payload: len bytes]
+```
+
+- `ver` = `0x01` for this spec.
+- `len` = payload length only, excluding the 4-byte header.
+- One packet per write. A packet never exceeds 244 B.
+- Strings are UTF-8, not NUL-terminated; their length is whatever remains of `len`.
+
+## Packet types
+
+| type | name | payload |
+|---|---|---|
+| 0x01 | NAV_TEXT | icon_seq:u8, dist_m:u32, eta_min:u16, remaining_m:u32, instr: UTF-8 ≤ 96 B |
+| 0x02 | NAV_ICON | icon_seq:u8, chunk_idx:u8, chunk_cnt:u8, data: 128 B |
+| 0x03 | NAV_END | — |
+| 0x10 | CALL | caller: UTF-8 ≤ 48 B |
+| 0x20 | STATUS | phone_batt_pct:u8, unix_time:u32, utc_offset_min:i16 |
+
+### NAV_ICON
+
+64×64 px, 1 bpp → 512 B total, always sent as `chunk_cnt` = 4 packets of exactly
+128 B data (`chunk_idx` 0–3, in order). Packet length is therefore 4 + 3 + 128 = 135 B.
+Pixel order: row-major, top-left first, MSB of each byte is the leftmost pixel,
+`1` = foreground.
+
+### icon_seq
+
+Phone increments `icon_seq` (wrapping at 255) whenever the icon hash changes, and
+stamps it on every NAV_TEXT and NAV_ICON. The pod shows an icon only when all four
+chunks of that `icon_seq` have arrived and it matches the latest NAV_TEXT's `icon_seq`;
+otherwise it renders text-only.
+
+### STATUS
+
+`unix_time` is UTC seconds; `utc_offset_min` is the phone's current offset from UTC
+in minutes (IST = 330). The pod has no RTC, so the phone sends STATUS on connect and
+then at least every 10 minutes to correct drift.
+
+### Unknown values
+
+Fields the phone could not parse are sent as all-ones: `dist_m` / `remaining_m` =
+`0xFFFFFFFF`, `eta_min` = `0xFFFF`, `phone_batt_pct` = `0xFF`, `unix_time` = `0`.
+An empty `instr` together with unknown `dist_m` means the phone could not parse the
+notification at all; the pod shows its "no data" screen.
+The pod blanks the field instead of showing a number.
+
+## Receiver rules (pod)
+
+1. Check `len` against bytes actually received before reading any payload field.
+2. Unknown `ver` or `type`: ignore the packet, keep the connection.
+3. Payload shorter than the fixed fields of its type: drop the packet.
+4. Strings over their limit: truncate at a UTF-8 code-point boundary.
+5. Invalid UTF-8: replace offending bytes with `?`.
+6. A chunk with `chunk_cnt` ≠ 4, `chunk_idx` > 3 or data ≠ 128 B is dropped.
+7. A new `icon_seq` discards any partially received icon. An incomplete icon is
+   never drawn.
+
+## Sender rules (phone)
+
+1. Send only when a value changes.
+2. Resend the icon only when its hash changes.
