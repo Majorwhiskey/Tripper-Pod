@@ -1,0 +1,357 @@
+{
+  "protocol": "docs/protocol.md, v1",
+  "generated_by": "firmware/tools/gen_vectors.py; do not edit by hand",
+  "notes": [
+    "kind=encode: the phone must turn `fields` into exactly `hex`. Strings in `fields` are what the phone parsed, before truncation.",
+    "kind=decode: bytes the phone must never send; `result` is the pod's decoder outcome and `fields` what it extracts when result is Ok.",
+    "Integers are decimal; unknown values use the all-ones sentinels (4294967295, 65535, 255). NAV_ICON `data` is 128 bytes as hex."
+  ],
+  "vectors": [
+    {
+      "name": "status_ist",
+      "kind": "encode",
+      "type": "STATUS",
+      "description": "12:00 IST, phone at 80 %",
+      "fields": {
+        "phone_batt_pct": 80,
+        "unix_time": 1795674600,
+        "utc_offset_min": 330
+      },
+      "hex": "0120070050E8D1076B4A01",
+      "result": "Ok"
+    },
+    {
+      "name": "status_negative_offset",
+      "kind": "encode",
+      "type": "STATUS",
+      "description": "UTC-03:30; utc_offset_min is signed two's complement",
+      "fields": {
+        "phone_batt_pct": 5,
+        "unix_time": 1795674600,
+        "utc_offset_min": -210
+      },
+      "hex": "0120070005E8D1076B2EFF",
+      "result": "Ok"
+    },
+    {
+      "name": "status_unknown",
+      "kind": "encode",
+      "type": "STATUS",
+      "description": "battery and time not available",
+      "fields": {
+        "phone_batt_pct": 255,
+        "unix_time": 0,
+        "utc_offset_min": 330
+      },
+      "hex": "01200700FF000000004A01",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_basic",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "",
+      "fields": {
+        "icon_seq": 1,
+        "dist_m": 300,
+        "eta_min": 12,
+        "remaining_m": 4200,
+        "instr": "Turn left onto MG Road"
+      },
+      "hex": "01012100012C0100000C00681000005475726E206C656674206F6E746F204D4720526F6164",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_unknown_numbers",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "instruction parsed, distance/ETA/remaining not",
+      "fields": {
+        "icon_seq": 2,
+        "dist_m": 4294967295,
+        "eta_min": 65535,
+        "remaining_m": 4294967295,
+        "instr": "Head north"
+      },
+      "hex": "0101150002FFFFFFFFFFFFFFFFFFFF48656164206E6F727468",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_no_data",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "nothing parsed; pod shows its no-data screen",
+      "fields": {
+        "icon_seq": 0,
+        "dist_m": 4294967295,
+        "eta_min": 65535,
+        "remaining_m": 4294967295,
+        "instr": ""
+      },
+      "hex": "01010B0000FFFFFFFFFFFFFFFFFFFF",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_kannada",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "multi-byte UTF-8 instruction",
+      "fields": {
+        "icon_seq": 3,
+        "dist_m": 1200,
+        "eta_min": 25,
+        "remaining_m": 18500,
+        "instr": "ಬಲಕ್ಕೆ ತಿರುಗಿ"
+      },
+      "hex": "0101300003B0040000190044480000E0B2ACE0B2B2E0B295E0B38DE0B295E0B38620E0B2A4E0B2BFE0B2B0E0B381E0B297E0B2BF",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_max_len",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "instruction exactly 96 bytes, sent whole",
+      "fields": {
+        "icon_seq": 4,
+        "dist_m": 50,
+        "eta_min": 1,
+        "remaining_m": 50,
+        "instr": "Continue onto xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "hex": "01016B000432000000010032000000436F6E74696E7565206F6E746F2078787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_text_truncated_utf8",
+      "kind": "encode",
+      "type": "NAV_TEXT",
+      "description": "97-byte instruction: cut to 94 bytes, never inside the 3-byte character",
+      "fields": {
+        "icon_seq": 5,
+        "dist_m": 800,
+        "eta_min": 3,
+        "remaining_m": 900,
+        "instr": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxಕ"
+      },
+      "hex": "01016900052003000003008403000078787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_end",
+      "kind": "encode",
+      "type": "NAV_END",
+      "description": "",
+      "fields": {},
+      "hex": "01030000",
+      "result": "Ok"
+    },
+    {
+      "name": "call_ascii",
+      "kind": "encode",
+      "type": "CALL",
+      "description": "",
+      "fields": {
+        "caller": "Amma"
+      },
+      "hex": "01100400416D6D61",
+      "result": "Ok"
+    },
+    {
+      "name": "call_kannada",
+      "kind": "encode",
+      "type": "CALL",
+      "description": "multi-byte UTF-8 caller",
+      "fields": {
+        "caller": "ಅಮ್ಮ"
+      },
+      "hex": "01100C00E0B285E0B2AEE0B38DE0B2AE",
+      "result": "Ok"
+    },
+    {
+      "name": "call_truncated_utf8",
+      "kind": "encode",
+      "type": "CALL",
+      "description": "49-byte caller: cut to 47 bytes, never inside the 2-byte character",
+      "fields": {
+        "caller": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyé"
+      },
+      "hex": "01102F007979797979797979797979797979797979797979797979797979797979797979797979797979797979797979797979",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_icon_arrow_chunk0",
+      "kind": "encode",
+      "type": "NAV_ICON",
+      "description": "right-turn arrow, chunk 0 of 4",
+      "fields": {
+        "icon_seq": 1,
+        "chunk_idx": 0,
+        "chunk_cnt": 4,
+        "data": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000300000000000000038000000000000003C000000000000003E000"
+      },
+      "hex": "0102830001000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000300000000000000038000000000000003C000000000000003E000",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_icon_arrow_chunk1",
+      "kind": "encode",
+      "type": "NAV_ICON",
+      "description": "right-turn arrow, chunk 1 of 4",
+      "fields": {
+        "icon_seq": 1,
+        "chunk_idx": 1,
+        "chunk_cnt": 4,
+        "data": "000000000003F000000000000003F800000000000003FC00000000000003FE000003FFFFFFFFFF000003FFFFFFFFFF800003FFFFFFFFFFC00003FFFFFFFFFFE00003FFFFFFFFFFF00003FFFFFFFFFFF80003FFFFFFFFFFFC0003FFFFFFFFFFF80003FFFFFFFFFFF00003FFFFFFFFFFE00003FFFFFFFFFFC00003FFFFFFFFFF80"
+      },
+      "hex": "01028300010104000000000003F000000000000003F800000000000003FC00000000000003FE000003FFFFFFFFFF000003FFFFFFFFFF800003FFFFFFFFFFC00003FFFFFFFFFFE00003FFFFFFFFFFF00003FFFFFFFFFFF80003FFFFFFFFFFFC0003FFFFFFFFFFF80003FFFFFFFFFFF00003FFFFFFFFFFE00003FFFFFFFFFFC00003FFFFFFFFFF80",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_icon_arrow_chunk2",
+      "kind": "encode",
+      "type": "NAV_ICON",
+      "description": "right-turn arrow, chunk 2 of 4",
+      "fields": {
+        "icon_seq": 1,
+        "chunk_idx": 2,
+        "chunk_cnt": 4,
+        "data": "0003FFC00003FF000003FFC00003FE000003FFC00003FC000003FFC00003F8000003FFC00003F0000003FFC00003E0000003FFC00003C0000003FFC0000380000003FFC0000300000003FFC0000200000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC000000000"
+      },
+      "hex": "010283000102040003FFC00003FF000003FFC00003FE000003FFC00003FC000003FFC00003F8000003FFC00003F0000003FFC00003E0000003FFC00003C0000003FFC0000380000003FFC0000300000003FFC0000200000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC000000000",
+      "result": "Ok"
+    },
+    {
+      "name": "nav_icon_arrow_chunk3",
+      "kind": "encode",
+      "type": "NAV_ICON",
+      "description": "right-turn arrow, chunk 3 of 4",
+      "fields": {
+        "icon_seq": 1,
+        "chunk_idx": 3,
+        "chunk_cnt": 4,
+        "data": "0003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "hex": "010283000103040003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000003FFC0000000000000000000000000000000000000000000000000000000000000000000000000",
+      "result": "Ok"
+    },
+    {
+      "name": "too_short",
+      "kind": "decode",
+      "type": null,
+      "description": "fewer than 4 header bytes",
+      "hex": "010300",
+      "result": "TooShort"
+    },
+    {
+      "name": "len_claims_more",
+      "kind": "decode",
+      "type": null,
+      "description": "len 15, 2 bytes follow",
+      "hex": "01010F000102",
+      "result": "LengthMismatch"
+    },
+    {
+      "name": "len_claims_less",
+      "kind": "decode",
+      "type": null,
+      "description": "len 0, 1 byte follows",
+      "hex": "01030000AA",
+      "result": "LengthMismatch"
+    },
+    {
+      "name": "bad_version",
+      "kind": "decode",
+      "type": null,
+      "description": "ver 2: ignore, keep connection",
+      "hex": "02030000",
+      "result": "UnsupportedVersion"
+    },
+    {
+      "name": "unknown_type",
+      "kind": "decode",
+      "type": null,
+      "description": "type 0x99: ignore, keep connection",
+      "hex": "0199010000",
+      "result": "UnknownType"
+    },
+    {
+      "name": "nav_text_short_payload",
+      "kind": "decode",
+      "type": null,
+      "description": "5 bytes, fixed fields need 11",
+      "hex": "010105000102030405",
+      "result": "BadPayload"
+    },
+    {
+      "name": "status_short_payload",
+      "kind": "decode",
+      "type": null,
+      "description": "6 bytes, fixed fields need 7",
+      "hex": "01200600320000000000",
+      "result": "BadPayload"
+    },
+    {
+      "name": "nav_icon_bad_count",
+      "kind": "decode",
+      "type": null,
+      "description": "chunk_cnt 3",
+      "hex": "010283000100030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "result": "BadPayload"
+    },
+    {
+      "name": "nav_icon_bad_index",
+      "kind": "decode",
+      "type": null,
+      "description": "chunk_idx 4",
+      "hex": "010283000104040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "result": "BadPayload"
+    },
+    {
+      "name": "nav_icon_short_data",
+      "kind": "decode",
+      "type": null,
+      "description": "100 data bytes instead of 128",
+      "hex": "0102670001000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "result": "BadPayload"
+    },
+    {
+      "name": "status_trailing_bytes",
+      "kind": "decode",
+      "type": "STATUS",
+      "description": "extra trailing byte ignored, so v1 can grow compatibly",
+      "hex": "0120080050010000004A01EE",
+      "result": "Ok",
+      "fields": {
+        "phone_batt_pct": 80,
+        "unix_time": 1,
+        "utc_offset_min": 330
+      }
+    },
+    {
+      "name": "nav_text_overlong",
+      "kind": "decode",
+      "type": "NAV_TEXT",
+      "description": "150-byte instruction truncated by the pod to 96",
+      "hex": "0101A1000000000000000000000000616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161",
+      "result": "Ok",
+      "fields": {
+        "icon_seq": 0,
+        "dist_m": 0,
+        "eta_min": 0,
+        "remaining_m": 0,
+        "instr": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "call_invalid_utf8",
+      "kind": "decode",
+      "type": "CALL",
+      "description": "invalid byte replaced with '?'",
+      "hex": "01100500416DFF6D61",
+      "result": "Ok",
+      "fields": {
+        "caller": "Am?ma"
+      }
+    }
+  ]
+}

@@ -18,6 +18,34 @@ Notes: <anything surprising>
 
 ## Entries
 
+### Shared protocol test vectors — 2026-11-26
+Not a build step: support for step 1/2 on the Android side.
+Setup: as the pre-hardware entry below, plus Python 3.12.15 (stdlib only).
+Command / procedure: `python3 firmware/tools/gen_vectors.py`; `cd firmware && pio test -e native`
+Result: PASS
+Output:
+```
+native         test_vectors    PASSED    00:00:00.912
+native         test_icon       PASSED    00:00:00.645
+native         test_pod_state  PASSED    00:00:00.706
+native         test_utf8       PASSED    00:00:00.627
+native         test_decode     PASSED    00:00:00.633
+native         test_text_fit   PASSED    00:00:00.622
+native         test_format     PASSED    00:00:00.636
+================= 44 test cases: 44 succeeded in 00:00:04.780 =================
+```
+30 vectors (17 encode, 13 decode). The generator encodes from `docs/protocol.md`
+independently of the firmware codec; `nav_text_basic` matches the bench-test packet
+byte for byte.
+Mutation check: added 1 to `utc_offset_min` in `encodeStatus`:
+```
+test_vectors.cpp:90: test_encoder_reproduces_encode_vectors: Element 9 Expected 74 Was 75. status_ist [FAILED]
+```
+Code restored; re-run passed.
+Notes: the firmware structs cannot hold an over-limit string, so the truncation
+vectors exercise the phone's encoder and the pod's decoder, not `utf8PrefixLen`
+(covered by `test_utf8`).
+
 ### Pre-hardware firmware (steps 4 and 5 code) — 2026-11-26
 Not a step completion: steps 4 and 5 need the board and are **not verified**.
 This records that the code builds and its host-testable logic passes.

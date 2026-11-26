@@ -16,6 +16,7 @@ the board (`docs/bench-test.md`). Step 1 (Android app) in progress on a separate
 | `firmware/` | ESP32-S3 firmware (PlatformIO) |
 | `hardware/` | schematic, BOM (`hardware/BOM.md`, draft), enclosure |
 | `docs/protocol.md` | BLE protocol v1 spec |
+| `docs/test-vectors.json` | byte-exact packets shared by app and firmware tests |
 | `docs/decisions.md` | decision log |
 | `docs/fixtures/` | captured Maps notifications |
 | `docs/test-log.md` | build-step verification records |
